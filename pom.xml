@@ -18,6 +18,7 @@
         <druid.version>1.0.18</druid.version>
         <aspectj.version>1.7.4</aspectj.version>
         <mysql.version>5.1.27</mysql.version>
+        <commons-lang.version>2.6</commons-lang.version>
     </properties>
 
     <dependencies>
@@ -129,6 +130,18 @@
             <version>${aspectj.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>commons-lang</groupId>
+            <artifactId>commons-lang</artifactId>
+            <version>${commons-lang.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.6</version>
+        </dependency>
+
         <!-- Oracle jdbc驱动 -->
         <!--<dependency>
             <groupId>com.oracle</groupId>
@@ -155,6 +168,28 @@
             <artifactId>activiti-spring</artifactId>
             <version>5.22.0</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.freemarker</groupId>
+            <artifactId>freemarker</artifactId>
+            <version>2.3.23</version>
+        </dependency>
     </dependencies>
 
+    <build>
+        <finalName>Activiti Demo</finalName>
+
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.2</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                    <encoding>UTF-8</encoding>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>
