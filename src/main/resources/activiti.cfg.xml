@@ -28,6 +28,7 @@
                 <bean class="com.hq.activiti.formengine.FreeMarkerFormEngine"/>
             </list>
         </property>
+
         <!--
             databaseSchemaUpdate: 设置流程引擎启动和关闭时如何处理数据库表。
                 false（默认）：检查数据库表的版本和依赖库的版本， 如果版本不匹配就抛出异常。
@@ -35,10 +36,12 @@
                 create-drop: 构建流程引擎时创建数据库表， 关闭流程引擎时删除这些表。
         -->
         <property name="databaseSchemaUpdate" value="true"/>
+
         <property name="jobExecutorActivate" value="false"/>
         <property name="activityFontName" value="楷体"/>
         <property name="labelFontName" value="楷体"/>
         <property name="annotationFontName" value="楷体"/>
+
         <!-- 自动部署流程配置 -->
         <property name="deploymentResources" value="classpath*:/flows/**/*"/>
     </bean>
