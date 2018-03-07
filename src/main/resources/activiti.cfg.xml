@@ -23,8 +23,11 @@
     <bean id="processEngineConfiguration" class="org.activiti.spring.SpringProcessEngineConfiguration">
         <property name="dataSource" ref="processEngineDataSource"/>
         <property name="transactionManager" ref="processEngineTransactionManager"/>
+
+        <!-- 自定义表单引擎 -->
         <property name="customFormEngines">
             <list>
+                <!-- 定义了自己实现的FreeMarker引擎 -->
                 <bean class="com.hq.activiti.formengine.FreeMarkerFormEngine"/>
             </list>
         </property>
@@ -37,7 +40,10 @@
         -->
         <property name="databaseSchemaUpdate" value="true"/>
 
+        <!-- 是否启动jobExecutor -->
         <property name="jobExecutorActivate" value="false"/>
+
+        <!-- 设置字体 -->
         <property name="activityFontName" value="楷体"/>
         <property name="labelFontName" value="楷体"/>
         <property name="annotationFontName" value="楷体"/>
