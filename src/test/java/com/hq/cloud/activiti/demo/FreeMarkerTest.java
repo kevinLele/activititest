@@ -6,7 +6,6 @@ import freemarker.template.TemplateException;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.HashMap;
@@ -22,7 +21,7 @@ public class FreeMarkerTest {
         String templateStr = "<div>Hello, ${user}</div>";
 
         try {
-            Template template = new Template("name", new StringReader(templateStr), cfg);
+            Template template = new Template(null, new StringReader(templateStr), cfg);
             StringWriter writer = new StringWriter();
             template.process(root, writer);
             System.out.println(writer.toString());
