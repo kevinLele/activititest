@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans  http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+
+    <bean id="processEngineConfiguration" class="org.activiti.engine.impl.cfg.StandaloneProcessEngineConfiguration">
+        <property name="jdbcDriver" value="com.mysql.jdbc.Driver"/>
+        <property name="jdbcUrl"
+                  value="jdbc:mysql://192.168.1.210:3306/myactiviti?useUnicode=true&amp;characterEncoding=utf8"/>
+        <property name="jdbcUsername" value="huiqing"/>
+        <property name="jdbcPassword" value="huiqing"/>
+        <!--
+            databaseSchemaUpdate: 设置流程引擎启动和关闭时如何处理数据库表。
+                false（默认）：检查数据库表的版本和依赖库的版本， 如果版本不匹配就抛出异常。
+                true: 构建流程引擎时，执行检查，如果需要就执行更新。 如果表不存在，就创建。
+                create-drop: 构建流程引擎时创建数据库表， 关闭流程引擎时删除这些表。
+        -->
+        <property name="databaseSchemaUpdate" value="true"/>
+    </bean>
+
+    <!-- 创建流程引擎对象 -->
+    <bean id="processEngine" class="org.activiti.spring.ProcessEngineFactoryBean">
+        <property name="processEngineConfiguration" ref="processEngineConfiguration"/>
+    </bean>
+
+    <!-- 由流程引擎对象，提供的方法，创建项目中使用的Activiti工作流的Service -->
+    <bean id="repositoryService" factory-bean="processEngine" factory-method="getRepositoryService"/>
+    <bean id="runtimeService" factory-bean="processEngine" factory-method="getRuntimeService"/>
+    <bean id="taskService" factory-bean="processEngine" factory-method="getTaskService"/>
+    <bean id="historyService" factory-bean="processEngine" factory-method="getHistoryService"/>
+    <bean id="formService" factory-bean="processEngine" factory-method="getFormService"/>
+</beans> 
