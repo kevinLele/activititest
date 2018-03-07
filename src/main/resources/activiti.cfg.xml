@@ -1,14 +1,33 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans  http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+                           http://www.springframework.org/schema/beans/spring-beans.xsd
+                           http://www.springframework.org/schema/tx
+                           http://www.springframework.org/schema/tx/spring-tx.xsd">
 
-    <bean id="processEngineConfiguration" class="org.activiti.engine.impl.cfg.StandaloneProcessEngineConfiguration">
-        <property name="jdbcDriver" value="com.mysql.jdbc.Driver"/>
-        <property name="jdbcUrl"
-                  value="jdbc:mysql://192.168.1.210:3306/myactiviti?useUnicode=true&amp;characterEncoding=utf8"/>
-        <property name="jdbcUsername" value="huiqing"/>
-        <property name="jdbcPassword" value="huiqing"/>
+    <bean id="processEngineDataSource" class="org.springframework.jdbc.datasource.SimpleDriverDataSource">
+        <property name="driverClass" value="com.mysql.jdbc.Driver"/>
+        <property name="url" value="jdbc:mysql://127.0.0.1:3306/activiti?useUnicode=true&amp;characterEncoding=utf8"/>
+        <property name="username" value="huiqing"/>
+        <property name="password" value="huiqing"/>
+    </bean>
+
+    <bean id="processEngineTransactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="processEngineDataSource"/>
+    </bean>
+
+    <tx:annotation-driven transaction-manager="processEngineTransactionManager" proxy-target-class="true"/>
+
+    <bean id="processEngineConfiguration" class="org.activiti.spring.SpringProcessEngineConfiguration">
+        <property name="dataSource" ref="processEngineDataSource"/>
+        <property name="transactionManager" ref="processEngineTransactionManager"/>
+        <property name="customFormEngines">
+            <list>
+                <bean class="com.hq.activiti.formengine.FreeMarkerFormEngine"/>
+            </list>
+        </property>
         <!--
             databaseSchemaUpdate: 设置流程引擎启动和关闭时如何处理数据库表。
                 false（默认）：检查数据库表的版本和依赖库的版本， 如果版本不匹配就抛出异常。
@@ -16,6 +35,10 @@
                 create-drop: 构建流程引擎时创建数据库表， 关闭流程引擎时删除这些表。
         -->
         <property name="databaseSchemaUpdate" value="true"/>
+        <property name="jobExecutorActivate" value="false"/>
+        <property name="activityFontName" value="楷体"/>
+        <property name="labelFontName" value="楷体"/>
+        <property name="annotationFontName" value="楷体"/>
     </bean>
 
     <!-- 创建流程引擎对象 -->
@@ -26,7 +49,12 @@
     <!-- 由流程引擎对象，提供的方法，创建项目中使用的Activiti工作流的Service -->
     <bean id="repositoryService" factory-bean="processEngine" factory-method="getRepositoryService"/>
     <bean id="runtimeService" factory-bean="processEngine" factory-method="getRuntimeService"/>
+    <bean id="formService" factory-bean="processEngine" factory-method="getFormService"/>
+    <bean id="identityService" factory-bean="processEngine" factory-method="getIdentityService"/>
     <bean id="taskService" factory-bean="processEngine" factory-method="getTaskService"/>
     <bean id="historyService" factory-bean="processEngine" factory-method="getHistoryService"/>
-    <bean id="formService" factory-bean="processEngine" factory-method="getFormService"/>
-</beans> 
+    <bean id="managementService" factory-bean="processEngine" factory-method="getManagementService"/>
+    <bean id="dynamicBpmnService" factory-bean="processEngine" factory-method="getDynamicBpmnService"/>
+    <bean id="configurationService" factory-bean="processEngine" factory-method="getProcessEngineConfiguration"/>
+
+</beans>
