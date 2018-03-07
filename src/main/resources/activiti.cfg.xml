@@ -39,6 +39,8 @@
         <property name="activityFontName" value="楷体"/>
         <property name="labelFontName" value="楷体"/>
         <property name="annotationFontName" value="楷体"/>
+        <!-- 自动部署流程配置 -->
+        <property name="deploymentResources" value="classpath*:/flows/**/*"/>
     </bean>
 
     <!-- 创建流程引擎对象 -->
