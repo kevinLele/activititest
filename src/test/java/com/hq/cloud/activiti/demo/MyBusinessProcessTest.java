@@ -10,15 +10,17 @@ import org.activiti.engine.history.HistoricActivityInstance;
 import org.activiti.engine.history.HistoricProcessInstance;
 import org.activiti.engine.history.HistoricTaskInstance;
 import org.activiti.engine.impl.RepositoryServiceImpl;
+import org.activiti.engine.impl.identity.Authentication;
 import org.activiti.engine.impl.persistence.entity.GroupEntity;
 import org.activiti.engine.impl.persistence.entity.ProcessDefinitionEntity;
 import org.activiti.engine.impl.persistence.entity.UserEntity;
 import org.activiti.engine.impl.pvm.PvmTransition;
 import org.activiti.engine.impl.pvm.process.ActivityImpl;
+import org.activiti.engine.repository.Deployment;
 import org.activiti.engine.repository.ProcessDefinition;
 import org.activiti.engine.runtime.ProcessInstance;
+import org.activiti.engine.task.Comment;
 import org.activiti.engine.task.Task;
-import org.activiti.engine.test.Deployment;
 import org.activiti.image.impl.DefaultProcessDiagramGenerator;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
@@ -82,11 +84,137 @@ public class MyBusinessProcessTest {
                 .deploy();
     }
 
+    @Test
+    public void findDeploymentList() {
+        List<org.activiti.engine.repository.Deployment> list = repositoryService.createDeploymentQuery()
+                .orderByDeploymenTime().asc()
+                .list();
+
+        System.out.println("list = " + list);
+    }
+
+    @Test
+    public void findProcessDefinitionList() {
+        List<ProcessDefinition> list = repositoryService.createProcessDefinitionQuery()
+                .orderByProcessDefinitionVersion().asc()
+                .list();
+
+        System.out.println("list = " + list);
+    }
+
+    /**
+     * 使用部署对象ID，删除流程定义
+     */
+    @Test
+    public void deleteProcessDefinitionByDeploymentId() {
+        String deploymentId = "2";
+        repositoryService.deleteDeployment(deploymentId, true);
+    }
+
+    /**
+     * 使用当前用户名查询正在执行的任务表，获取当前任务的集合List<Task>
+     * name:当前登录人的ID，
+     * processKey：所属流程图的ID
+     */
+    @Test
+    public void findTaskListByName() {
+        String name = "";
+        String processKey = "";
+
+        List<Task> list = taskService.createTaskQuery()//
+//				.processDefinitionName("LeavebillName")
+//				.processDefinitionKey(processKey)
+                .taskAssignee(name)//指定个人任务查询
+                .limitTaskVariables(2)
+                .orderByTaskCreateTime().asc()//
+                .listPage(1, 3);
+//				.list();
+        System.out.println("list = " + list);
+    }
+
+    /**
+     * 启动流程实例，让启动的流程实例关联业务
+     * key:流程id
+     * nextuserId:下一步审核人ID
+     */
+    public Map<String, Object> startProcess(String key, String nextuserId) {
+        Map<String, Object> result = new HashMap<String, Object>();
+        if (nextuserId == null || nextuserId == "") {
+            result.put("message", "申请失败，请重试");
+            return result;
+        }
+        Map<String, Object> variables = new HashMap<String, Object>();
+        variables.put("User", nextuserId);//表示惟一用户
+        //6：使用流程定义的key，启动流程实例，同时设置流程变量，同时向正在执行的执行对象表中的字段BUSINESS_KEY添加业务数据，同时让流程关联业务
+        try {
+            runtimeService.startProcessInstanceByKey(key, variables);
+            result.put("message", "申请成功");
+        } catch (Exception e) {
+            result.put("message", "申请失败，请重试");
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        return result;
+    }
+
+    /**
+     * 指定连线的名称完成任务
+     * taskId：任务ID，
+     * currentUserId：当前操作人ID,
+     * nextUserId:下一审核人ID
+     * message：批注信息
+     * status：是否同意信息
+     */
+    public boolean saveSubmitTask(String taskId, String currentUserId, String nextUserId, String message, String status) {
+        /**
+         * 1：在完成之前，添加一个批注信息，向act_hi_comment表中添加数据，用于记录对当前申请人的一些审核信息
+         */
+        //使用任务ID，查询任务对象，获取流程流程实例ID
+        Task task = taskService.createTaskQuery()//
+                .taskId(taskId)//使用任务ID查询
+                .singleResult();
+        //获取流程实例ID
+        String processInstanceId = task.getProcessInstanceId();
+        Authentication.setAuthenticatedUserId(currentUserId);
+        taskService.addComment(taskId, processInstanceId, message);
+        Map<String, Object> variables = new HashMap<String, Object>();
+        if (currentUserId != null && currentUserId != "") {
+            variables.put("User", nextUserId);
+        }
+
+        //3：使用任务ID，完成当前人的个人任务，同时流程变量
+        taskService.complete(taskId, variables);
+        //4：当任务完成之后，需要指定下一个任务的办理人（使用类）-----已经开发完成
+        ProcessInstance pi = runtimeService.createProcessInstanceQuery()//
+                .processInstanceId(processInstanceId)//使用流程实例ID查询
+                .singleResult();
+        //流程结束了
+        if (pi == null) {
+            //流程结束返回false
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * 获取批注信息，传递的是当前任务ID，获取历史任务ID对应的批注
+     */
+    public List<Comment> findCommentByTaskId(String taskId) {
+        List<Comment> list = new ArrayList<Comment>();
+        Task task = taskService.createTaskQuery()//
+                .taskId(taskId)//使用任务ID查询
+                .singleResult();
+        //获取流程实例ID
+        String processInstanceId = task.getProcessInstanceId();
+        list = taskService.getProcessInstanceComments(processInstanceId);
+        return list;
+    }
+
     /**
      * 启动流程测试
      */
     @Test
-    @Deployment
+    /*@Deployment*/
     public void startProcessTest() {
         //设置当前人
         identityService.setAuthenticatedUserId("zhangsan");
